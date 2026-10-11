@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FFF6E0">
+  <title>Chicken Fridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav class="nav" aria-label="Main">
+    <p class="brand">Chicken<br>Fridge</p>
+    <a href="#fridge" data-view="fridge"><span class="nav-icon" data-icon="fridge"></span><span>My Fridge</span></a>
+    <a href="#list" data-view="list"><span class="nav-icon" data-icon="list"></span><span>My List</span></a>
+    <a href="#recipes" data-view="recipes"><span class="nav-icon" data-icon="pot"></span><span>Recipes</span></a>
+  </nav>
+
+  <main id="main">
+    <section id="view-fridge" class="view" hidden></section>
+    <section id="view-list" class="view" hidden></section>
+    <section id="view-recipes" class="view" hidden></section>
+  </main>
+
+  <div id="sheet-root"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
