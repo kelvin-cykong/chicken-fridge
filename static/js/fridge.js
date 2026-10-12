@@ -4,7 +4,7 @@
 import { api } from './api.js';
 import { icon, catIcon } from './icons.js';
 import {
-  h, state, toast, openSheet, closeSheet, sheetIsOpen, nameInput, stepper, setNavBadge,
+  h, setChildren, state, toast, openSheet, closeSheet, sheetIsOpen, nameInput, stepper, setNavBadge,
   ZONES, ZONE_LABEL, addDays, fmtDate, daysLabel, daysLong, statusTag, qtyText,
 } from './ui.js';
 
@@ -54,7 +54,7 @@ export function drawFridge() {
     expired ? `${expired} past date` : null,
   ].filter(Boolean).join(' · ');
 
-  root.replaceChildren(
+  setChildren(root,
     h('header', { class: 'page-head' }, h('h1', null, 'My Fridge'), h('p', { class: 'sub' }, summary)),
     h('div', { class: 'fridge-layout' },
       h('div', { class: 'fridge-stage' },
@@ -251,7 +251,7 @@ function drawPanel() {
   const el = document.getElementById('fridge-panel');
   if (panel.kind === 'item' && !findItem(panel.id)) panel = { kind: 'zone', zone: panel.from || 'chilled' };
   const backTo = panel.kind === 'item' ? panel.from || findItem(panel.id).zone : null;
-  el.replaceChildren(
+  setChildren(el,
     h('header', { class: 'panel-head' },
       backTo && h('button', { class: 'icon-btn', type: 'button', 'aria-label': `Back to ${ZONE_LABEL[backTo]}`,
         onclick: () => show({ kind: 'zone', zone: backTo }) }, icon('back')),
@@ -307,7 +307,7 @@ function itemDetail(item) {
       statusTag(item)),
     h('div', { class: 'detail-actions' },
       h('button', { class: 'btn primary', type: 'button', onclick: () => removeItem(item, 'eaten') }, icon('check'), 'Eaten'),
-      h('button', { class: 'btn', type: 'button', onclick: () => removeItem(item, 'thrown') }, icon('trash'), 'Thrown away')),
+      h('button', { class: 'btn danger', type: 'button', onclick: () => removeItem(item, 'thrown') }, icon('trash'), 'Thrown away')),
     h('p', { class: 'sub detail-delete' }, 'Added by mistake? ',
       h('button', { class: 'link', type: 'button', onclick: () => deleteItem(item) }, 'Delete it'),
       ' (doesn\'t count as waste)'),
@@ -422,7 +422,7 @@ function openAdd() {
 
   // `from` is the bought list item being stored, or null for a brand-new item.
   const mount = (from) => {
-    body.replaceChildren(
+    setChildren(body,
       state.pending.length ? h('section', { class: 'pending' },
         h('h3', null, h('span', { class: 'dot' }), 'Bought, not stored yet'),
         h('p', { class: 'sub' }, 'Tap one to fill in the form.'),
@@ -482,15 +482,15 @@ async function openExpiredCheck() {
   function ask() {
     const item = queue[index];
     const canKeep = item.keep_options.length > 0;
-    body.replaceChildren(
+    setChildren(body,
       progress(),
       h('div', { class: 'check-top' },
         mascotImg(state.mascot.mood, 'small'),
-        h('p', null, h('strong', null, item.name, qtyText(item)), h('span', null, `passed its date on ${fmtDate(item.expiry)}`))),
+        h('p', null, h('strong', null, item.name, qtyText(item)), h('span', null, `passed its date ${-item.days_left} ${item.days_left === -1 ? 'day' : 'days'} ago`))),
       h('p', { class: 'label' }, 'What happened to it?'),
       h('div', { class: 'check-actions' },
         h('button', { class: 'btn primary wide', type: 'button', onclick: () => finish(item, 'eaten') }, icon('check'), 'Ate it / used it up'),
-        h('button', { class: 'btn wide', type: 'button', onclick: () => finish(item, 'thrown') }, icon('trash'), 'Threw it away'),
+        h('button', { class: 'btn danger wide', type: 'button', onclick: () => finish(item, 'thrown') }, icon('trash'), 'Threw it away'),
         canKeep
           ? h('button', { class: 'btn wide', type: 'button', onclick: () => keepStep(item) }, icon('calendar'), 'Still good, keep it')
           : h('p', { class: 'sub' }, 'It has been kept 7 days past its date, so it can\'t be kept any longer.')),
@@ -501,7 +501,7 @@ async function openExpiredCheck() {
     // The pop-up shows the reaction to this one item (always happy for eaten, angry for
     // thrown away). The bird on the fridge keeps its standing mood.
     const { reaction } = await send(item, { action });
-    body.replaceChildren(
+    setChildren(body,
       progress(),
       h('div', { class: 'check-result' },
         mascotImg(reaction.mood, action === 'eaten' ? 'hop' : 'shake'),
@@ -517,7 +517,7 @@ async function openExpiredCheck() {
       h('button', { class: 'pick' + (d === days ? ' on' : ''), type: 'button', role: 'radio', 'aria-checked': String(d === days),
         onclick: () => { days = d; paint(); } }, `${d} ${d === 1 ? 'day' : 'days'}`)));
     paint();
-    body.replaceChildren(
+    setChildren(body,
       progress(),
       h('p', null, h('strong', null, item.name), ' stays in the fridge with a PAST DATE tag.'),
       h('p', { class: 'label' }, 'Ask me again in…'),

@@ -27,6 +27,12 @@ export function h(tag, attrs, ...kids) {
   return el;
 }
 
+// Replace an element's children, skipping null / false so optional parts can be
+// written inline. (Plain replaceChildren would print them as the text "null".)
+export function setChildren(el, ...kids) {
+  el.replaceChildren(...kids.flat(Infinity).filter((kid) => kid != null && kid !== false));
+}
+
 // ---------------------------------------------------------------- dates & labels
 
 const iso = (d) =>

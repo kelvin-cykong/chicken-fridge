@@ -97,6 +97,7 @@ main { padding: 14px 16px calc(var(--nav-h) + 28px + env(safe-area-inset-bottom)
 .page-head .btn { flex: none; white-space: nowrap; }
 .btn:disabled { opacity: .6; cursor: default; }
 .btn.primary { background: var(--mint); }
+.btn.danger { background: var(--tomato); color: var(--white); }
 .btn.fire { background: var(--tomato); color: var(--white); font-size: 21px; font-weight: 800; min-height: 54px; letter-spacing: .02em; }
 .btn.wide { width: 100%; }
 .btn.square { width: 48px; min-height: 48px; padding: 0; flex: none; }
