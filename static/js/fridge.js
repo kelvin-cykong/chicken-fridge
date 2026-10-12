@@ -17,7 +17,8 @@ const MOOD_RANK = { angry: 0, sulky: 1, content: 2, happy: 3, superhappy: 4 };
 const MOOD_LABEL = { angry: 'very angry', sulky: 'a bit cross', content: 'content', happy: 'happy', superhappy: 'super happy' };
 // Which picture each mood uses: the heart one is "happy", the dancing one is "super happy".
 const MOOD_IMAGE = { angry: 'angry', sulky: 'sulky', content: 'content', happy: 'content', superhappy: 'happy' };
-const REACTION_MS = 1400;
+const REACTION_MS = 2200;      // how long a reaction card stays up
+const MOOD_CHANGE_MS = 1300;   // hop / shake when the standing mood changes
 const DEMO = new URLSearchParams(location.search).get('demo') === '1';
 
 const root = document.getElementById('view-fridge');
@@ -83,33 +84,42 @@ let shownMood = null;   // mood last drawn, to spot changes
 let moodAnim = null;    // { cls, until }: survives the redraws that follow a change
 let bubbleTimer;
 
-// One-off reaction on the fridge to a single item: the happy picture and a hop for food
-// eaten, the angry picture and a shake for food thrown away. Afterwards the bird goes
-// back to its standing mood, which comes from the server.
-function react(action) {
-  const anim = action === 'eaten' ? { mood: 'happy', cls: 'hop' } : { mood: 'angry', cls: 'shake' };
-  moodAnim = { ...anim, until: Date.now() + REACTION_MS };
-}
-
-// What the bird on the fridge shows right now: { mood, cls }.
+// What the bird on the fridge shows: always its standing mood, which comes from the
+// server. It hops or shakes only at the moment that standing mood changes.
+// Reactions to a single item are shown separately (see showReaction).
 function mascotPose() {
   const mood = state.mascot.mood;
-  const playing = moodAnim && Date.now() < moodAnim.until;
-  if (shownMood && shownMood !== mood && !playing) {
-    // The standing mood changed with no reaction playing (e.g. the demo buttons).
-    moodAnim = { mood, cls: MOOD_RANK[mood] > MOOD_RANK[shownMood] ? 'hop' : 'shake', until: Date.now() + 700 };
+  if (shownMood && shownMood !== mood) {
+    moodAnim = { cls: MOOD_RANK[mood] > MOOD_RANK[shownMood] ? 'hop' : 'shake', until: Date.now() + MOOD_CHANGE_MS };
   }
   shownMood = mood;
+  const idle = mood === 'superhappy' ? 'dance' : '';
   if (moodAnim && Date.now() < moodAnim.until) {
     const anim = moodAnim;
     setTimeout(() => {
-      if (moodAnim !== anim) return; // a newer reaction has taken over
+      if (moodAnim !== anim) return; // a newer change has taken over
       moodAnim = null;
-      root.querySelector('.perch')?.replaceWith(mascotEl());
+      root.querySelector('.mascot .mascot-img, .mascot .mascot-missing')?.classList.replace(anim.cls, idle || 'still');
     }, anim.until - Date.now());
-    return anim;
+    return { mood, cls: anim.cls };
   }
-  return { mood, cls: mood === 'superhappy' ? 'dance' : '' };
+  return { mood, cls: idle };
+}
+
+// One-off reaction to a single item being eaten or thrown away: its own little card with
+// the happy or angry bird and one line. It goes away by itself; a tap closes it sooner.
+let reactionTimer;
+function showReaction(reaction) {
+  document.querySelector('.reaction-card')?.remove();
+  clearTimeout(reactionTimer);
+  const card = h('div', { class: 'reaction-card', role: 'status', onclick: () => card.remove() },
+    mascotImg(reaction.mood, reaction.mood === 'happy' ? 'hop' : 'shake'),
+    h('p', null, reaction.message));
+  document.body.append(card);
+  reactionTimer = setTimeout(() => {
+    card.classList.add('leaving');
+    setTimeout(() => card.remove(), 200);
+  }, REACTION_MS);
 }
 
 function mascotImg(mood, className = '') {
@@ -271,9 +281,8 @@ async function refresh() {
 
 // Eaten / thrown away: recorded in the history log, which drives the bin chicken's mood.
 async function removeItem(item, action) {
-  await api.post(`/fridge/${item.id}/resolve`, { action });
-  react(action);
-  toast(action === 'eaten' ? `Nice, ${item.name} eaten` : `${item.name} thrown away`);
+  const { reaction } = await api.post(`/fridge/${item.id}/resolve`, { action });
+  showReaction(reaction);
   await refresh();
 }
 
@@ -473,7 +482,6 @@ async function openExpiredCheck() {
   };
   const send = async (item, payload) => {
     const result = await api.post(`/fridge/${item.id}/resolve`, payload);
-    if (payload.action !== 'keep') react(payload.action);
     await load();
     drawFridge();
     return result;

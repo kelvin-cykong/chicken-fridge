@@ -207,6 +207,19 @@ textarea.input { resize: vertical; line-height: 1.4; }
 .bubble.static { position: relative; right: auto; bottom: auto; max-width: none; width: auto; flex: 1; box-shadow: var(--shadow-sm); }
 .bubble.static::after { right: auto; left: -8px; bottom: 16px; transform: rotate(-135deg); }
 
+.reaction-card {
+  position: fixed; z-index: 70; left: 16px; right: 16px; top: 15%;
+  display: flex; align-items: center; gap: 12px;
+  width: fit-content; max-width: min(340px, calc(100% - 32px)); margin: 0 auto; padding: 10px 16px 10px 10px;
+  background: var(--white); border: var(--line); border-radius: 14px; box-shadow: 4px 4px 0 var(--ink);
+  font-weight: 700; line-height: 1.3; cursor: pointer;
+  animation: card-in .2s ease-out both;
+}
+.reaction-card .mascot-img, .reaction-card .mascot-missing { height: 92px; flex: none; }
+.reaction-card.leaving { animation: card-out .2s ease-in both; }
+@keyframes card-in { from { opacity: 0; transform: translateY(-14px) scale(.94); } }
+@keyframes card-out { to { opacity: 0; transform: translateY(-10px); } }
+
 .demo-panel {
   position: fixed; z-index: 16; left: 12px; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
   display: grid; gap: 4px; padding: 8px; width: 116px;

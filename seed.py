@@ -195,9 +195,8 @@ SAMPLE_FRIDGE = [
 ]
 
 # Finished items: (name, action, was expiring soon or past its date, days ago)
-SAMPLE_HISTORY = [
-    ("Lettuce", "thrown", True, 3),
-]
+# Empty by default, so the bin chicken starts out content.
+SAMPLE_HISTORY = []
 
 # (name, quantity, bought)
 SAMPLE_LIST = [
